@@ -31,6 +31,7 @@ Il codice ora:
 1. **Tenta comunque l'invio** - Prova a inviare il messaggio
 2. **Risolve il peer prima** - Usa `resolve_peer()` per migliorare le possibilità
 3. **Gestisce errori specifici** - Fornisce messaggi di errore chiari:
+   - **PEER_ID_INVALID** - L'utente non ti ha mai scritto (errore più comune)
    - Privacy settings
    - User not found
    - Blocked
@@ -60,17 +61,23 @@ Il codice ora:
 - Non è un messaggio diretto personale
 - L'utente deve essere iscritto al canale
 
-### Opzione 3: Invio Manuale Preventivo
+### Opzione 3: Invio Manuale Preventivo ⚠️ NON FUNZIONA
 
-**Strategia:**
-1. Quando un utente entra nel gruppo, inviagli un messaggio di benvenuto
-2. Questo crea una "conversazione" che permette messaggi futuri
-3. Poi puoi usare l'automazione per contattarlo quando esce
+**⚠️ IMPORTANTE:** Questa strategia NON funziona!
 
-**Implementazione:**
-- Aggiungi un webhook per quando un utente ENTRA nel gruppo
-- Invia automaticamente un messaggio di benvenuto
-- Ora puoi contattarlo anche quando esce
+Se provi a inviare un messaggio di benvenuto a un utente che non ti ha mai scritto, riceverai l'errore:
+```
+PEER_ID_INVALID: The peer id being used is invalid or not known yet
+```
+
+**Perché non funziona:**
+- Telegram non permette di iniziare una conversazione con un utente che non ti ha scritto
+- Anche se l'utente è nel gruppo, non puoi inviargli un messaggio diretto se non ti ha mai scritto
+- Il messaggio di benvenuto automatico fallirà con lo stesso errore
+
+**Cosa funziona invece:**
+- Se l'utente ti scrive PRIMA (anche solo "ciao"), poi puoi rispondergli
+- Se aggiungi l'utente come contatto nel tuo telefono, potresti riuscire a contattarlo
 
 ### Opzione 4: Usa Gruppi Comuni
 
@@ -91,6 +98,15 @@ Quando provi a inviare un messaggio:
 
 Il codice restituisce errori specifici:
 
+**Errore più comune (PEER_ID_INVALID):**
+```json
+{
+  "success": false,
+  "error": "PEER_ID_INVALID: Non puoi iniziare una conversazione con questo utente perché non ti ha mai scritto..."
+}
+```
+
+**Altri errori possibili:**
 ```json
 {
   "success": false,
@@ -98,13 +114,51 @@ Il codice restituisce errori specifici:
 }
 ```
 
-## 🎯 Raccomandazione
+## 🎯 Soluzioni Pratiche per il Tuo Caso
 
-Per il tuo caso d'uso (contattare utenti che escono dal gruppo):
+### ❌ Cosa NON Funziona
+- ❌ Messaggio di benvenuto automatico quando entrano → **PEER_ID_INVALID**
+- ❌ Contattare utenti che escono senza che ti abbiano scritto → **PEER_ID_INVALID**
 
-1. **Implementa un messaggio di benvenuto** quando entrano
-2. **Usa questo sistema** per contattarli quando escono
-3. **Considera un bot** se vuoi contattare anche utenti che non ti hanno mai scritto
+### ✅ Cosa FUNZIONA
 
-Vuoi che implementiamo il messaggio di benvenuto automatico?
+#### Soluzione 1: Bot Telegram (MIGLIORE)
+Crea un bot Telegram che:
+1. Gli utenti possono aggiungere al gruppo
+2. Quando un utente entra, il bot può inviare un messaggio di benvenuto
+3. Quando un utente esce, il bot può contattarlo (se ha interagito con il bot)
+4. I messaggi arrivano dal bot, non dal tuo account personale
+
+**Vantaggi:**
+- ✅ Funziona anche con utenti che non ti hanno scritto
+- ✅ Nessuna limitazione PEER_ID_INVALID
+- ✅ Più affidabile per automazioni
+
+#### Soluzione 2: Usa il Gruppo per Contattare
+Invece di messaggi diretti:
+1. Quando un utente esce, menzionalo nel gruppo: "@username ti abbiamo visto uscire, contattaci!"
+2. L'utente può rispondere nel gruppo o scriverti direttamente
+3. Dopo che ti scrive, puoi usare l'automazione per messaggi futuri
+
+#### Soluzione 3: Aspetta che Scrivano
+1. Quando un utente entra nel gruppo, aspetta che scriva qualcosa
+2. Rispondi nel gruppo o in privato
+3. Ora puoi contattarlo anche quando esce
+
+#### Soluzione 4: Canale Telegram
+1. Crea un canale Telegram
+2. Quando un utente esce, pubblica un post nel canale
+3. Gli utenti iscritti vedranno il messaggio
+4. Nessuna limitazione di privacy
+
+## 📝 Conclusione
+
+**L'errore PEER_ID_INVALID è normale e previsto** quando provi a contattare utenti che non ti hanno mai scritto.
+
+**Per contattare tutti gli utenti che escono:**
+- ✅ Usa un **Bot Telegram** (soluzione migliore)
+- ✅ Usa un **Canale Telegram** per comunicazioni pubbliche
+- ✅ Aspetta che l'utente ti scriva prima di poterlo contattare
+
+Vuoi che ti aiuti a implementare una soluzione con Bot Telegram?
 

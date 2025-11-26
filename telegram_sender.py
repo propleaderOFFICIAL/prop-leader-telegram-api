@@ -105,7 +105,12 @@ async def send_message(user_id: int, message: str):
         error_str = str(e).lower()
         
         # Gestione errori specifici
-        if "user privacy" in error_str or "privacy" in error_str:
+        if "peer_id_invalid" in error_str or "peer id invalid" in error_str or "invalid or not known yet" in error_str:
+            return {
+                "success": False,
+                "error": "PEER_ID_INVALID: Non puoi iniziare una conversazione con questo utente perché non ti ha mai scritto. Telegram richiede che l'utente ti abbia scritto almeno una volta prima di poterlo contattare. Soluzione: l'utente deve scriverti prima, oppure devi aggiungerlo come contatto."
+            }
+        elif "user privacy" in error_str or "privacy" in error_str:
             return {
                 "success": False, 
                 "error": "L'utente ha impostazioni di privacy che impediscono i messaggi da sconosciuti. L'utente deve averti scritto almeno una volta o essere in un gruppo comune."
