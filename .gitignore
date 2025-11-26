@@ -1,6 +1,5 @@
 # File di sessione Telegram (NON committare!)
-# NOTA: prop_leader_user_session.session è committato per Railway
-# *.session
+*.session
 *.session-journal
 
 # Python
