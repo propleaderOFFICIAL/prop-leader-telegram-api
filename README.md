@@ -10,7 +10,7 @@ Automatizzare il contatto dal tuo account Telegram personale (non dal Bot) verso
 
 1. **API ID e API Hash di Telegram**: Ottenuti da [my.telegram.org](https://my.telegram.org)
 2. **Python 3.7+** installato sul tuo PC locale
-3. **Account Replit** (o altro servizio di hosting)
+3. **Account hosting** (Replit, Railway, o Vercel - vedi [DEPLOY_OPTIONS.md](./DEPLOY_OPTIONS.md))
 
 ---
 
@@ -39,7 +39,16 @@ Automatizzare il contatto dal tuo account Telegram personale (non dal Bot) verso
 
 ---
 
-## 🛠️ Passo 2: Hosting su Replit
+## 🛠️ Passo 2: Hosting
+
+Puoi usare uno di questi servizi:
+- 🚂 **Railway** (Consigliato) - Vedi [RAILWAY_SETUP.md](./RAILWAY_SETUP.md)
+- 🖥️ **Replit** - Vedi [REPLIT_SETUP.md](./REPLIT_SETUP.md)
+- ▲ **Vercel** - Vedi [VERCEL_SETUP.md](./VERCEL_SETUP.md)
+
+Confronto completo: [DEPLOY_OPTIONS.md](./DEPLOY_OPTIONS.md)
+
+### Opzione A: Hosting su Replit
 
 1. **Importa il progetto su Replit:**
    - Crea un nuovo Repl
@@ -62,6 +71,16 @@ Automatizzare il contatto dal tuo account Telegram personale (non dal Bot) verso
    URL Pubblico di Replit + /prop_leader/send_message
    ```
    Esempio: `https://prop-leader-bot.replit.app/prop_leader/send_message`
+
+---
+
+### Opzione B: Hosting su Railway (Consigliato)
+
+Railway è più semplice e non richiede modifiche al codice. Vedi la guida completa in [RAILWAY_SETUP.md](./RAILWAY_SETUP.md).
+
+### Opzione C: Hosting su Vercel
+
+Vercel richiede alcune modifiche per funzionare con serverless. Vedi [VERCEL_SETUP.md](./VERCEL_SETUP.md).
 
 ---
 
