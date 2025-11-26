@@ -75,16 +75,58 @@ if not create_session_file():
     sys.exit(1)
 
 async def send_message(user_id: int, message: str):
-    """Invia un messaggio Telegram"""
-    # Usa il path assoluto del file di sessione
+    """
+    Invia un messaggio Telegram.
+    
+    NOTA IMPORTANTE: Telegram ha limitazioni anti-spam:
+    - Non puoi inviare messaggi a utenti che non ti hanno mai scritto
+    - Eccezioni: se l'utente è in un gruppo/canale comune, potrebbe funzionare
+    - Se l'utente ti ha aggiunto come contatto, funziona
+    
+    Questo script tenta comunque l'invio e gestisce gli errori appropriatamente.
+    """
     app_client = Client(SESSION_NAME, API_ID, API_HASH, workdir=SCRIPT_DIR)
     try:
         await app_client.start()
+        
+        # Prova a risolvere il peer prima (aiuta in alcuni casi)
+        try:
+            peer = await app_client.resolve_peer(user_id)
+        except Exception:
+            # Se non riesce a risolvere, continua comunque
+            pass
+        
+        # Tenta l'invio del messaggio
         await app_client.send_message(chat_id=user_id, text=message)
         await app_client.stop()
         return {"success": True}
+        
     except Exception as e:
-        return {"success": False, "error": str(e)}
+        error_str = str(e).lower()
+        
+        # Gestione errori specifici
+        if "user privacy" in error_str or "privacy" in error_str:
+            return {
+                "success": False, 
+                "error": "L'utente ha impostazioni di privacy che impediscono i messaggi da sconosciuti. L'utente deve averti scritto almeno una volta o essere in un gruppo comune."
+            }
+        elif "user not found" in error_str or "not found" in error_str:
+            return {
+                "success": False,
+                "error": "Utente non trovato. Verifica che l'user_id sia corretto."
+            }
+        elif "blocked" in error_str:
+            return {
+                "success": False,
+                "error": "L'utente ti ha bloccato."
+            }
+        elif "spam" in error_str or "too many" in error_str:
+            return {
+                "success": False,
+                "error": "Limite anti-spam raggiunto. Telegram impedisce di inviare troppi messaggi a utenti che non ti hanno scritto."
+            }
+        else:
+            return {"success": False, "error": str(e)}
 
 if __name__ == "__main__":
     # Leggi i parametri da stdin (JSON)
