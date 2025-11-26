@@ -21,38 +21,28 @@ Railway è perfetto per questo progetto perché supporta processi long-running e
 
 ⚠️ **IMPORTANTE**: Il file `.session` deve essere caricato come file nel progetto.
 
-### Opzione A: Tramite Railway CLI (Consigliato)
+📖 **Guida Completa**: Vedi [RAILWAY_UPLOAD_FILES.md](./RAILWAY_UPLOAD_FILES.md) per istruzioni dettagliate.
+
+### Metodo Rapido (Railway CLI):
 
 1. Installa Railway CLI:
    ```bash
    npm i -g @railway/cli
+   # oppure su macOS: brew install railway
    ```
 
-2. Accedi:
+2. Accedi e collega:
    ```bash
    railway login
-   ```
-
-3. Collega il progetto:
-   ```bash
    railway link
    ```
 
-4. Carica il file:
+3. Carica il file:
    ```bash
    railway up prop_leader_user_session.session
    ```
 
-### Opzione B: Tramite GitHub (Temporaneo)
-
-1. **ATTENZIONE**: Questo espone il file pubblicamente!
-2. Aggiungi temporaneamente il file al repository (solo per il deploy)
-3. Dopo il deploy, rimuovilo immediatamente
-
-### Opzione C: Tramite Railway Dashboard
-
-1. Vai su **"Settings"** → **"Source"**
-2. Usa il file system per aggiungere il file direttamente
+Per metodi alternativi e troubleshooting, consulta [RAILWAY_UPLOAD_FILES.md](./RAILWAY_UPLOAD_FILES.md).
 
 ## Passo 4: Configura il Build
 
