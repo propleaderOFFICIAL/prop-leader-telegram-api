@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 import os
 import subprocess
 import json
+import threading
 
 app = Flask(__name__)
 
@@ -44,25 +45,48 @@ def send_telegram_message():
             "message": final_message
         })
         
-        # Esegui lo script come subprocess (isolato completamente da Flask)
+        # Esegui lo script come subprocess in un thread separato per isolare completamente
         import sys
-        process = subprocess.Popen(
-            [sys.executable, script_path],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            cwd=os.path.dirname(__file__)
-        )
+        result_dict = {"stdout": None, "stderr": None, "returncode": None, "error": None}
         
-        stdout, stderr = process.communicate(input=input_data, timeout=30)
+        def run_subprocess():
+            try:
+                process = subprocess.Popen(
+                    [sys.executable, script_path],
+                    stdin=subprocess.PIPE,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    cwd=os.path.dirname(__file__),
+                    env=dict(os.environ)  # Passa una copia dell'ambiente
+                )
+                
+                result_dict["stdout"], result_dict["stderr"] = process.communicate(input=input_data, timeout=30)
+                result_dict["returncode"] = process.returncode
+            except Exception as e:
+                result_dict["error"] = str(e)
         
-        if process.returncode != 0:
+        # Esegui in un thread separato
+        thread = threading.Thread(target=run_subprocess)
+        thread.start()
+        thread.join(timeout=35)  # Timeout leggermente più lungo
+        
+        if thread.is_alive():
+            return jsonify({"status": "failure", "error": "Timeout durante l'invio del messaggio", "user": user_id}), 500
+        
+        if result_dict["error"]:
+            return jsonify({"status": "failure", "error": result_dict["error"], "user": user_id}), 500
+        
+        stdout = result_dict["stdout"]
+        stderr = result_dict["stderr"]
+        process_returncode = result_dict["returncode"]
+        
+        if process_returncode != 0:
             error_msg = stderr.strip() if stderr else "Errore sconosciuto durante l'esecuzione"
             # Se è un errore di autenticazione (file sessione mancante), è normale
             if "session" in error_msg.lower() or "phone number" in error_msg.lower():
                 error_msg = "File di sessione mancante. Esegui authenticate.py per generarlo."
-            return jsonify({"status": "failure", "error": error_msg, "user": user_id, "returncode": process.returncode}), 500
+            return jsonify({"status": "failure", "error": error_msg, "user": user_id, "returncode": process_returncode}), 500
         
         # Parse del risultato
         try:
