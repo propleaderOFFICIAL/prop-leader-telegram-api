@@ -22,14 +22,16 @@ def send_telegram_message():
     
     # 1. ESTREZIONE DATI CONCRETI (Dall'n8n)
     user_id = data.get('user_id')
-    first_name = data.get('first_name', 'Membro')
-    message_text = data.get('message', "Messaggio di default: contatta Prop Leader.")
+    message_text = data.get('message')
 
     if not user_id:
         return jsonify({"status": "error", "message": "user_id mancante"}), 400
+    
+    if not message_text:
+        return jsonify({"status": "error", "message": "message mancante"}), 400
 
-    # 2. STRUTTURA DEL MESSAGGIO PERSONALIZZATO (ZERO FILTRI!)
-    final_message = f"🚨 Ehi {first_name}! {message_text}"
+    # 2. MESSAGGIO DIRETTO (ZERO FILTRI!)
+    final_message = message_text
 
     # 3. AZIONE: INVIARE TRAMITE IL TUO ACCOUNT PERSONALE
     try:
