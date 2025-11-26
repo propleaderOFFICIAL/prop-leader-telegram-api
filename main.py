@@ -11,11 +11,8 @@ app = Flask(__name__)
 def health_check():
     return jsonify({
         "status": "online",
-        "service": "Prop Leader Telegram API",
-        "endpoints": {
-            "user_api": "/prop_leader/send_message",
-            "bot_api": "/prop_leader/send_message_bot"
-        }
+        "service": "Prop Leader Telegram User API",
+        "endpoint": "/prop_leader/send_message"
     }), 200
 
 # L'endpoint Webhook che n8n colpirà.
@@ -110,88 +107,6 @@ def send_telegram_message():
         return jsonify({"status": "failure", "error": "Timeout durante l'invio del messaggio", "user": user_id}), 500
     except Exception as e:
         # Gestione degli errori (es. utente ha bloccato il tuo account)
-        import traceback
-        error_trace = traceback.format_exc()
-        return jsonify({"status": "failure", "error": str(e), "traceback": error_trace[:500], "user": user_id}), 500
-
-# Endpoint per inviare messaggi tramite Bot API
-@app.route('/prop_leader/send_message_bot', methods=['POST'])
-def send_telegram_message_bot():
-    """
-    Endpoint per inviare messaggi tramite Bot Telegram.
-    Supera le limitazioni dell'API User (PEER_ID_INVALID).
-    """
-    data = request.json
-    
-    user_id = data.get('user_id')
-    message_text = data.get('message')
-
-    if not user_id:
-        return jsonify({"status": "error", "message": "user_id mancante"}), 400
-    
-    if not message_text:
-        return jsonify({"status": "error", "message": "message mancante"}), 400
-
-    try:
-        script_path = os.path.join(os.path.dirname(__file__), "telegram_bot_sender.py")
-        
-        if not os.path.exists(script_path):
-            return jsonify({"status": "failure", "error": f"Script bot non trovato: {script_path}", "user": user_id}), 500
-        
-        input_data = json.dumps({
-            "user_id": int(user_id),
-            "message": message_text
-        })
-        
-        import sys
-        result_dict = {"stdout": None, "stderr": None, "returncode": None, "error": None}
-        
-        def run_subprocess():
-            try:
-                process = subprocess.Popen(
-                    [sys.executable, script_path],
-                    stdin=subprocess.PIPE,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    text=True,
-                    cwd=os.path.dirname(__file__),
-                    env=dict(os.environ)
-                )
-                
-                result_dict["stdout"], result_dict["stderr"] = process.communicate(input=input_data, timeout=30)
-                result_dict["returncode"] = process.returncode
-            except Exception as e:
-                result_dict["error"] = str(e)
-        
-        thread = threading.Thread(target=run_subprocess)
-        thread.start()
-        thread.join(timeout=35)
-        
-        if thread.is_alive():
-            return jsonify({"status": "failure", "error": "Timeout durante l'invio del messaggio", "user": user_id}), 500
-        
-        if result_dict["error"]:
-            return jsonify({"status": "failure", "error": result_dict["error"], "user": user_id}), 500
-        
-        stdout = result_dict["stdout"]
-        stderr = result_dict["stderr"]
-        process_returncode = result_dict["returncode"]
-        
-        if process_returncode != 0:
-            error_msg = stderr.strip() if stderr else "Errore sconosciuto durante l'esecuzione"
-            return jsonify({"status": "failure", "error": error_msg, "user": user_id, "returncode": process_returncode}), 500
-        
-        try:
-            result = json.loads(stdout.strip())
-        except json.JSONDecodeError:
-            return jsonify({"status": "failure", "error": f"Risposta non valida: {stdout[:200]}", "user": user_id}), 500
-        
-        if result.get("success"):
-            return jsonify({"status": "success", "message": f"Messaggio inviato a {user_id} tramite bot"}), 200
-        else:
-            return jsonify({"status": "failure", "error": result.get("error", "Errore sconosciuto"), "user": user_id}), 500
-        
-    except Exception as e:
         import traceback
         error_trace = traceback.format_exc()
         return jsonify({"status": "failure", "error": str(e), "traceback": error_trace[:500], "user": user_id}), 500
